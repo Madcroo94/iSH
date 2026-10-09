@@ -6,7 +6,7 @@
 [ -n "$1" ] || { echo "Usage: sh tunnel.sh you@laptop-ip [port]"; exit 1; }
 PORT="${2:-${PORT:-2222}}"
 
-pgrep -x sshd >/dev/null 2>&1 || /usr/sbin/sshd
+ps | grep -v grep | grep -q "/usr/sbin/sshd\|sshd:" || /usr/sbin/sshd
 
 echo "Opening tunnel to $1. Leave this running."
 echo "On the laptop run:  ssh -p $PORT root@localhost"
