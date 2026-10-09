@@ -14,6 +14,7 @@ PROFILE=/root/.profile
 MARK_BEGIN="# >>> ish-lab sshd >>>"
 MARK_END="# <<< ish-lab sshd <<<"
 
+sshd_running() { ps 2>/dev/null | grep -v grep | grep -q '/usr/sbin/sshd\|sshd:'; }
 say()  { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31mxx\033[0m %s\n' "$*"; exit 1; }
@@ -81,16 +82,16 @@ fi
 # 6. Start sshd
 say "Checking config..."
 /usr/sbin/sshd -t || die "sshd config test failed (see error above)."
-if pgrep -x sshd >/dev/null 2>&1; then
+if sshd_running; then
   say "Restarting sshd..."
-  pkill -x sshd || true
+  pkill sshd || true
   sleep 1
 else
   say "Starting sshd..."
 fi
 /usr/sbin/sshd || die "sshd failed to start. Run '/usr/sbin/sshd -D -e' to see why."
-sleep 1
-pgrep -x sshd >/dev/null 2>&1 || die "sshd exited right away. Run '/usr/sbin/sshd -D -e' to see why."
+sleep 2
+sshd_running || die "sshd exited right away. Run '/usr/sbin/sshd -D -e' to see why."
 
 # 7. Keep iSH alive in the background (needs Location permission for iSH)
 if [ -e /dev/location ]; then
@@ -107,7 +108,7 @@ if ! grep -qF "$MARK_BEGIN" "$PROFILE" 2>/dev/null; then
   say "Adding auto-start to $PROFILE..."
   cat >> "$PROFILE" <<'EOF'
 # >>> ish-lab sshd >>>
-pgrep -x sshd >/dev/null 2>&1 || /usr/sbin/sshd
+ps | grep -v grep | grep -q "/usr/sbin/sshd\|sshd:" || /usr/sbin/sshd
 [ -e /dev/location ] && { pgrep -f "cat /dev/location" >/dev/null 2>&1 || (nohup cat /dev/location >/dev/null 2>&1 &); }
 # <<< ish-lab sshd <<<
 EOF

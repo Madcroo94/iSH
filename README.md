@@ -6,8 +6,8 @@ Turn iSH on your iPhone into an SSH server you can reach from your laptop.
 
 ```sh
 apk add git
-git clone https://github.com/Madcroo94/ish-lab
-cd ish-lab
+git clone https://github.com/Madcroo94/iSH
+cd iSH
 sh setup-ssh.sh
 ```
 
@@ -25,6 +25,31 @@ Options:
 PORT=2200 sh setup-ssh.sh                              # different port
 PUBKEY="$(cat id_ed25519.pub)" sh setup-ssh.sh          # allow your laptop's key
 ```
+
+## Phone lab: status page and health checks
+
+Once SSH works, turn the phone into a lab node (run in iSH, from the same folder):
+
+```sh
+sh install-lab.sh
+```
+
+This installs `busybox-extras` (for its web server), copies the lab into `/root/lab`, starts it, and makes it start every time you open iSH. Then open `http://<phone-ip>:8080/` on the laptop for a status page that refreshes every minute (`/status.json` has the same data for scripts).
+
+```
+/root/lab/
+  etc/node.conf   # node name, role, ports (kept when you re-run the installer)
+  bin/lab.sh      # start | stop | status | restart
+  bin/health.sh   # checks sshd, httpd, keep-alive; writes www/status.json + www/index.html
+  bin/loop.sh     # reruns health.sh every 60 s
+  www/  logs/  nodes/
+```
+
+Name a node on first install: `NODE_NAME=phone2 NODE_ROLE=worker NODE_IP=10.0.0.251 sh install-lab.sh`. Ports are the same on every phone: SSH 2222, status page 8080, new services 8081 and up.
+
+`lab.sh stop` never stops sshd or the keep-alive, so you can't lock yourself out. To remove the lab completely: `sh install-lab.sh uninstall` (SSH setup is left as is).
+
+Run the offline tests on any machine with `sh tests/run.sh`.
 
 ## If the laptop can't connect
 

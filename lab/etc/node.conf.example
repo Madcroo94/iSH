@@ -1,0 +1,6 @@
+# Who this node is. install-lab.sh writes lab/etc/node.conf from this on first install.
+NODE_NAME=phone1
+NODE_ROLE=base
+NODE_IP=
+SSH_PORT=2222
+HTTP_PORT=8080
